@@ -1,6 +1,7 @@
+---
 - name: Setup a new Ubuntu server
   hosts: webserver
-  become: yes # Run tasks as root
+  become: true
   tasks:
     - name: Update and upgrade APT packages
       apt:
@@ -14,6 +15,10 @@
           - docker.io
           - docker-compose
           - nodejs
+          - npm
+          - certbot
+          - python3-certbot-nginx
+          - ufw
         state: present
 
     - name: Start and enable Nginx
@@ -38,6 +43,29 @@
               }
           }
       notify: Restart Nginx
+
+    - name: Download NVM installation script
+      become: false
+      shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+
+    - name: Add NVM to bash profile
+      become: false
+      blockinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK FOR NVM"
+        block: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+    - name: Source bashrc
+      become: false
+      shell: source ~/.bashrc
+      args:
+        executable: /bin/bash
 
   handlers:
     - name: Restart Nginx
