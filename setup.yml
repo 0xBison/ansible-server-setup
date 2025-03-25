@@ -14,8 +14,6 @@
           - nginx
           - docker.io
           - docker-compose
-          - nodejs
-          - npm
           - certbot
           - python3-certbot-nginx
           - ufw
@@ -58,12 +56,25 @@
         marker: "# {mark} ANSIBLE MANAGED BLOCK FOR NVM"
         block: |
           export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-    - name: Source bashrc
+    - name: Install Node.js with NVM
       become: false
-      shell: source ~/.bashrc
+      shell: |
+        export NVM_DIR="$HOME/.nvm"
+        . "$NVM_DIR/nvm.sh"
+        nvm install --lts
+        nvm alias default 'lts/*'
+        nvm use default
+      args:
+        executable: /bin/bash
+
+    - name: Install PM2 globally
+      become: false
+      shell: |
+        . ~/.nvm/nvm.sh
+        npm install -g pm2
       args:
         executable: /bin/bash
 
