@@ -13,6 +13,7 @@
           - nginx
           - docker.io
           - docker-compose
+          - nodejs
         state: present
 
     - name: Start and enable Nginx
